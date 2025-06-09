@@ -1,34 +1,22 @@
-/**
- * Pose Detection Application
- * Using TensorFlow.js and Teachable Machine
- * Created: January 2024
- */
+// Pose Detection Application
+// Using TensorFlow.js and Teachable Machine
+// Created: January 2024
+// Modified: June 2025 for explosion effect and clean integration
 
 // Model URL from Teachable Machine
-//**************************************************
-//* as before, paste your lnk below
 let URL = "https://teachablemachine.withgoogle.com/models/3fKzLlseb/";
 
-
-
-
 let model, webcam, ctx, labelContainer, maxPredictions;
-
-// Dynamic pose tracking
 let poseStates = {};
 let explosionActive = false;
 let explosionSound = new Audio('explsn.mp3');
 
 function setModelURL(url) {
     URL = url;
-    // Reset states when URL changes
     poseStates = {};
     explosionActive = false;
 }
 
-/**
- * Initialize the application
- */
 async function init() {
     const modelURL = URL + "model.json";
     const metadataURL = URL + "metadata.json";
@@ -52,7 +40,9 @@ async function init() {
         canvas.width = width;
         canvas.height = height;
         ctx = canvas.getContext("2d");
+
         labelContainer = document.getElementById("label-container");
+        labelContainer.innerHTML = ""; // Clear previous labels
         for (let i = 0; i < maxPredictions; i++) {
             labelContainer.appendChild(document.createElement("div"));
         }
@@ -61,7 +51,7 @@ async function init() {
     }
 }
 
-async function loop(timestamp) {
+async function loop() {
     webcam.update();
     await predict();
     window.requestAnimationFrame(loop);
@@ -84,7 +74,6 @@ async function predict() {
                 prediction[i].className + ": " + prediction[i].probability.toFixed(2);
             labelContainer.childNodes[i].innerHTML = classPrediction;
 
-            // Check pose dynamically
             checkPose(prediction[i], video);
         }
 
@@ -98,7 +87,6 @@ function checkPose(prediction, video) {
     const time = video.currentTime;
     const prob = prediction.probability;
 
-    // Only respond to pose1 through pose5 labels
     const poseNumber = prediction.className.toLowerCase().replace(/[^0-9]/g, '');
     const isPoseLabel = prediction.className.toLowerCase().includes('pose') && poseNumber >= 1 && poseNumber <= 5;
 
@@ -115,7 +103,7 @@ function checkPose(prediction, video) {
     if (prob > 0.8 && !explosionActive) {
         const poseState = poseStates[`pose${poseNumber}`];
 
-        switch(poseNumber) {
+        switch (poseNumber) {
             case '1':
                 if (time >= 0.9 && time <= 3.0 && !poseState.triggered) {
                     triggerExplosion(poseState);
@@ -171,7 +159,7 @@ function drawPose(pose, explode) {
                         const scale = 3;
                         ctx.beginPath();
                         ctx.arc(keypoint.position.x, keypoint.position.y, 10 * scale, 0, 2 * Math.PI);
-                        ctx.fillStyle = '#FF0000';
+                        ctx.fillStyle = '#FF0000'; // red explosion effect
                         ctx.fill();
                     }
                 });
@@ -192,7 +180,7 @@ async function playInstructionVideo() {
     video.addEventListener('timeupdate', () => {
         const minutes = Math.floor(video.currentTime / 60);
         const seconds = Math.floor(video.currentTime % 60);
-        document.getElementById('videoTime').textContent = 
+        document.getElementById('videoTime').textContent =
             `Time: ${minutes}:${seconds.toString().padStart(2, '0')}`;
     });
 
@@ -213,7 +201,7 @@ async function playInstructionVideo() {
     async function processFrame() {
         if (!video.paused && !video.ended) {
             try {
-                const { pose, posenetOutput } = await model.estimatePose(video);
+                const { pose } = await model.estimatePose(video);
                 videoCtx.clearRect(0, 0, videoCanvas.width, videoCanvas.height);
 
                 if (pose) {
@@ -230,7 +218,7 @@ async function playInstructionVideo() {
     if (model) {
         processFrame();
     } else {
-        console.log("https://teachablemachine.withgoogle.com/models/3fKzLlseb/");
+        console.log("Model not loaded yet.");
     }
 }
 
@@ -242,12 +230,9 @@ function stopInstructionVideo() {
     if (canvas) {
         canvas.remove();
     }
-    pose1Triggered = false;
-    pose2Triggered = false;
-    pose3FirstWindowTriggered = false;
-    pose3SecondWindowTriggered = false;
-    pose4Triggered = false;
-    pose5Triggered = false;
+    // Reset pose states
+    poseStates = {};
+    explosionActive = false;
 }
 
 function stopWebcam() {
