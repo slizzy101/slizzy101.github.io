@@ -104,17 +104,17 @@ function checkPose(prediction, video) {
         const poseState = poseStates[`pose${poseNumber}`];
 
         switch (poseNumber) {
-            case '1':
+            case 'y':
                 if (time >= 0.9 && time <= 3.0 && !poseState.triggered) {
                     triggerExplosion(poseState);
                 }
                 break;
-            case '2':
+            case 'm':
                 if (time >= 5.5 && time <= 7.5 && !poseState.triggered) {
                     triggerExplosion(poseState);
                 }
                 break;
-            case '3':
+            case 'c':
                 if ((time >= 11.5 && time <= 13.0 && !poseState.firstWindowTriggered) ||
                     (time >= 17.5 && time <= 19.5 && !poseState.secondWindowTriggered)) {
                     if (time <= 13.0) {
@@ -127,12 +127,12 @@ function checkPose(prediction, video) {
                     setTimeout(() => { explosionActive = false; }, 300);
                 }
                 break;
-            case '4':
+            case 'a':
                 if (time >= 15.5 && time <= 16.6 && !poseState.triggered) {
                     triggerExplosion(poseState);
                 }
                 break;
-            case '5':
+            case 'heehee':
                 if (time >= 19.5 && !poseState.triggered) {
                     triggerExplosion(poseState);
                 }
